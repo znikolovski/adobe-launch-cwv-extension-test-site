@@ -90,12 +90,39 @@ export function decorateMain(main) {
 }
 
 /**
+ * Loads Adobe Launch if a query parameter is present.
+ */
+function loadAdobeLaunch() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const launchUrl = urlParams.get('launch_url');
+  if (launchUrl) {
+    const script = document.createElement('script');
+    script.src = launchUrl;
+    script.async = true;
+    document.head.appendChild(script);
+    // eslint-disable-next-line no-console
+    console.log('Adobe Launch loaded from:', launchUrl);
+    sessionStorage.setItem('launch_url', launchUrl);
+  } else {
+    // Check session storage to persist across navigation
+    const storedLaunchUrl = sessionStorage.getItem('launch_url');
+    if (storedLaunchUrl) {
+      const script = document.createElement('script');
+      script.src = storedLaunchUrl;
+      script.async = true;
+      document.head.appendChild(script);
+    }
+  }
+}
+
+/**
  * Loads everything needed to get to LCP.
  * @param {Element} doc The container element
  */
 async function loadEager(doc) {
   document.documentElement.lang = 'en';
   decorateTemplateAndTheme();
+  loadAdobeLaunch();
   const main = doc.querySelector('main');
   if (main) {
     decorateMain(main);
