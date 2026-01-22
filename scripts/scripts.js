@@ -94,23 +94,41 @@ export function decorateMain(main) {
  */
 function loadAdobeLaunch() {
   const urlParams = new URLSearchParams(window.location.search);
-  const launchUrl = urlParams.get('launch_url');
+  let launchUrl = urlParams.get('launch_url');
+
   if (launchUrl) {
-    const script = document.createElement('script');
-    script.src = launchUrl;
-    script.async = true;
-    document.head.appendChild(script);
-    // eslint-disable-next-line no-console
-    console.log('Adobe Launch loaded from:', launchUrl);
     sessionStorage.setItem('launch_url', launchUrl);
   } else {
-    // Check session storage to persist across navigation
-    const storedLaunchUrl = sessionStorage.getItem('launch_url');
-    if (storedLaunchUrl) {
+    launchUrl = sessionStorage.getItem('launch_url');
+  }
+
+  if (launchUrl) {
+    // Check for existing Launch script
+    const scripts = document.getElementsByTagName('script');
+    let existingScript = null;
+    for (let i = 0; i < scripts.length; i += 1) {
+      if (scripts[i].src && scripts[i].src.indexOf('assets.adobedtm.com') !== -1 && scripts[i].src.indexOf('launch-') !== -1) {
+        existingScript = scripts[i];
+        break;
+      }
+    }
+
+    if (existingScript) {
+      // Replace existing script
+      const newScript = document.createElement('script');
+      newScript.src = launchUrl;
+      newScript.async = true;
+      existingScript.parentNode.replaceChild(newScript, existingScript);
+      // eslint-disable-next-line no-console
+      console.log('Adobe Launch updated to:', launchUrl);
+    } else {
+      // Add new script
       const script = document.createElement('script');
-      script.src = storedLaunchUrl;
+      script.src = launchUrl;
       script.async = true;
       document.head.appendChild(script);
+      // eslint-disable-next-line no-console
+      console.log('Adobe Launch loaded from:', launchUrl);
     }
   }
 }
